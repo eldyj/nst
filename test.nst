@@ -1,0 +1,32 @@
+"
+NOTE: after convertation to assembly
+you need to join out with std.sma
+with something like this
+cat std.sma out.sma > result.sma
+"
+
+# will moved to std.nst soon
+{++ inc}
+{-- dec}
+{+ add}
+{- sub}
+{* mul}
+{/ div}
+{% mod}
+{println prn}
+{exit hlt}
+{done 0 exit}
+
+# factorial function
+{fac!
+	dup --
+	dup 1 less
+	then fac!
+	*
+}
+
+# main function, _start in sm_assembly
+{entry
+	5 fac! println
+	done
+}
