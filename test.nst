@@ -20,8 +20,7 @@ cat std.sma out.sma > result.sma
 # factorial function
 {fac!
 	dup --
-	dup 1 less
-	then fac!
+	dup 1 <? fac!
 	*
 }
 

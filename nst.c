@@ -195,17 +195,30 @@ main(argc, argv)
 						"ce%lu:\n"
 					,next_jmp, conds, conds, conds, tokens[i].val, conds);
 					++conds;
-				} else if (!strcmp(tokens[i].val, "less")) {
+				} else if (!strcmp(tokens[i].val, "<?")) {
 					printf("jb scmp\n");
 					next_jmp = "jl";
-				} else if (!strcmp(tokens[i].val, "greater")) {
+					conditional_jump = 1;
+				} else if (!strcmp(tokens[i].val, ">?")) {
 					printf("jb scmp\n");
 					next_jmp = "jg";
-				} else if (!strcmp(tokens[i].val, "equal")) {
+					conditional_jump = 1;
+				} else if (!strcmp(tokens[i].val, "<=?")) {
+					printf("jb scmp\n");
+					next_jmp = "jle";
+					conditional_jump = 1;
+				} else if (!strcmp(tokens[i].val, ">=?")) {
+					printf("jb scmp\n");
+					next_jmp = "jge";
+					conditional_jump = 1;
+				} else if (!strcmp(tokens[i].val, "=?")) {
 					printf("jb scmp\n");
 					next_jmp = "jz";
-				} else if (!strcmp(tokens[i].val, "then")) {
-						conditional_jump = 1;
+					conditional_jump = 1;
+				} else if (!strcmp(tokens[i].val, "~=?")) {
+					printf("jb scmp\n");
+					next_jmp = "jnz";
+					conditional_jump = 1;
 				} else if (!strcmp(tokens[i].val, "inc")
 				|| !strcmp(tokens[i].val, "dec")
 				|| !strcmp(tokens[i].val, "dup")
