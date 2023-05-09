@@ -1,4 +1,5 @@
 load-sma std.sma
+{<=> swp}
 {++ inc}
 {-- dec}
 {+ add}
