@@ -39,6 +39,7 @@ error(msg)
 	 || c == '<' \
 	 || c == '>' \
 	 || c == '=' \
+	 || c == '.' \
 	 || c == '?')
 
 token_t
@@ -158,36 +159,46 @@ char
 	return buffer;
 }
 
-int
-main(argc, argv)
-	int argc;
-	char *argv[argc];
+void
+translate_nst(fn, out)
+	char *fn;
+	FILE *out;
 {
-	char* input = read_file(argv[1]);
+	char* input = read_file(fn);
 	int num_tokens;
 	token_t* tokens = tokenize(input, &num_tokens);
 	free(input);
 	unsigned short get_fn_name = 0;
 	unsigned short conditional_jump = 0;
+	unsigned short include = 0;
+	unsigned short include_sma = 0;
 	char *next_jmp = NULL;
 	size_t conds = 0;
 	
 	for (int i = 0; i < num_tokens; ++i) {
 		switch (tokens[i].type) {
 			case TOK_NUM:
-				printf("psh %s\n", tokens[i].val);
+				fprintf(out,"psh %s\n", tokens[i].val);
 				break;
 			case TOK_IDENT:
 				if (get_fn_name) {
 					if (!strcmp(tokens[i].val, "entry"))
-						printf("_start:\n");
+						fprintf(out, "_start:\n");
 					else
-						printf("%s:\n", tokens[i].val);
+						fprintf(out, "%s:\n", tokens[i].val);
 				
 					get_fn_name = 0;
+				} else if (include) {
+					include = 0;
+					translate_nst(tokens[i].val, out);
+				} else if (include_sma) {
+					include_sma = 0;
+					char *smac = read_file(tokens[i].val);
+					fprintf(out, smac);
+					free(smac);
 				} else if (conditional_jump) {
 					conditional_jump = 0;
-					printf(
+					fprintf(out,
 						"%s c%lu\n"
 						"ja ce%lu\n"
 						"c%lu:\n"
@@ -195,28 +206,32 @@ main(argc, argv)
 						"ce%lu:\n"
 					,next_jmp, conds, conds, conds, tokens[i].val, conds);
 					++conds;
+				} else if (!strcmp(tokens[i].val, "load")) {
+					include = 1;
+				} else if (!strcmp(tokens[i].val, "load-sma")) {
+					include_sma = 1;
 				} else if (!strcmp(tokens[i].val, "<?")) {
-					printf("jb scmp\n");
+					fprintf(out, "jb scmp\n");
 					next_jmp = "jl";
 					conditional_jump = 1;
 				} else if (!strcmp(tokens[i].val, ">?")) {
-					printf("jb scmp\n");
+					fprintf(out, "jb scmp\n");
 					next_jmp = "jg";
 					conditional_jump = 1;
 				} else if (!strcmp(tokens[i].val, "<=?")) {
-					printf("jb scmp\n");
+					fprintf(out, "jb scmp\n");
 					next_jmp = "jle";
 					conditional_jump = 1;
 				} else if (!strcmp(tokens[i].val, ">=?")) {
-					printf("jb scmp\n");
+					fprintf(out, "jb scmp\n");
 					next_jmp = "jge";
 					conditional_jump = 1;
 				} else if (!strcmp(tokens[i].val, "=?")) {
-					printf("jb scmp\n");
+					fprintf(out,"jb scmp\n");
 					next_jmp = "jz";
 					conditional_jump = 1;
 				} else if (!strcmp(tokens[i].val, "~=?")) {
-					printf("jb scmp\n");
+					fprintf(out,"jb scmp\n");
 					next_jmp = "jnz";
 					conditional_jump = 1;
 				} else if (!strcmp(tokens[i].val, "inc")
@@ -240,19 +255,28 @@ main(argc, argv)
 				|| !strcmp(tokens[i].val, "rot")
 				|| !strcmp(tokens[i].val, "not")
 				) {
-					printf("jb s%s\n", tokens[i].val);
+					fprintf(out, "jb s%s\n", tokens[i].val);
 				} else {
-					printf("jb %s\n", tokens[i].val);
+					fprintf(out, "jb %s\n", tokens[i].val);
 				}
 				break;
 			case TOK_LBRACE:
 				get_fn_name = 1;
 				break;
 			case TOK_RBRACE:
-				printf("gb\n");
+				fprintf(out, "gb\n");
 				break;
 		}
 	}
-	
+}
+
+int
+main(argc, argv)
+	int argc;
+	char *argv[argc];
+{
+	FILE *out = fopen(argv[2], "w");
+	translate_nst(argv[1], out);
+	fclose(out);
 	return 0;
 }

@@ -1,0 +1,11 @@
+load-sma std.sma
+{++ inc}
+{-- dec}
+{+ add}
+{- sub}
+{* mul}
+{/ div}
+{% mod}
+{println prn}
+{exit hlt}
+{done 0 exit}
