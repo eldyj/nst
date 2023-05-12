@@ -1,12 +1,142 @@
-load-sma std.sma
-{<=> swp}
-{++ inc}
-{-- dec}
-{+ add}
-{- sub}
-{* mul}
-{/ div}
-{% mod}
-{println prn}
-{exit hlt}
-{done 0 exit}
+{dup
+	(POP A)
+	(PSH A)
+	(PSH A)
+}
+
+{<=>
+	(POP A)
+	(POP B)
+	(PSH A)
+	(PSH B)
+}
+
+# needed for all conditional jumps
+{scmp
+	(POP A)
+	(POP B)
+	(CMP A B)
+}
+
+{println
+	(POP A)
+	(PRN A)
+}
+
+{++
+	(POP A)
+	(INC A)
+	(PSH A)
+}
+
+{--
+	(POP A)
+	(DEC A)
+	(PSH A)
+}
+
+{+
+	(POP A)
+	(POP B)
+	(ADD A B)
+	(PSH A)
+}
+
+{-
+	(POP A)
+	(POP B)
+	(SUB A B)
+	(PSH A)
+}
+
+{*
+	(POP A)
+	(POP B)
+	(MUL A B)
+	(PSH A)
+}
+
+{/
+	(POP A)
+	(POP B)
+	(DIV A B)
+	(PSH A)
+}
+
+{%
+	(POP A)
+	(POP B)
+	(MOD A B)
+	(PSH A)
+}
+
+{>>
+	(POP A)
+	(POP B)
+	(SHR A B)
+	(PSH A)
+}
+
+{<<
+	(POP A)
+	(POP B)
+	(SHL A B)
+	(PSH A)
+}
+
+
+{exit
+	(POP A)
+	(HLT A)
+}
+
+{&
+	(POP A)
+	(POP B)
+	(AND A B)
+	(PSH A)
+}
+
+{^
+	(POP A)
+	(POP B)
+	(XOR A B)
+	(PSH A)
+}
+
+{|
+	(POP A)
+	(POP B)
+	(OR A B)
+	(PSH A)
+}
+
+{~
+	(POP A)
+	(NOT A)
+	(PSH A)
+}
+
+{rot
+	(POP A)
+	(POP B)
+	(POP C)
+	(PSH A)
+	(PSH B)
+	(PSH C)
+}
+
+{rm
+	(POP A)
+	(XOR A A)
+}
+
+{nrm
+	(POP A)
+	(MV B A)
+	(SNRM_L:)
+	rm
+	(DEC B)
+	(CMP B 0)
+	(JG SNRM_L)
+}

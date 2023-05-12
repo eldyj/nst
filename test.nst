@@ -1,20 +1,12 @@
 load std.nst
 
-#factorial
 {fac!
 	dup -- dup
 	1 <? fac!
 	*
 }
 
-{facs!
-	-- dup
-	1 <? facs!
-	10 fac! println
-}
-
-# main
 {entry
-	250 facs!
-	0 hlt
+	10 fac! println
+	0 exit
 }

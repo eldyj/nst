@@ -8,20 +8,13 @@ typedef enum {
 	TOK_IDENT,
 	TOK_LBRACE,
 	TOK_RBRACE,
+	TOK_ASSEMBLY,
 } token_kind_t;
 
 typedef struct {
 	token_kind_t type;
 	char *val;
 } token_t;
-
-void
-error(msg)
-	char *msg;
-{
-	fprintf(stderr, "Error: %s\n", msg);
-	exit(1);
-}
 
 #define is_ident(c) \
 	(isalpha(c)\
@@ -77,17 +70,39 @@ token_t
 		}
 		
 		if (is_ident(c)) {
-			char *val = malloc(sizeof(char) * 21);
-			int k = 0;
+			++i;
+			size_t k = 1;
 			
-			while (i < len && is_ident(input[i]))
-				val[k++] = input[i++];
+			while (i < len && is_ident(input[i])) {
+				++i;
+				++k;
+			}
 			
-			val[k] = '\0';
+			char *val = malloc(sizeof(char) * (k+1));
+			strncpy(val, &input[i-k], k);
+			val[k] = 0;
 			tokens[j].type = TOK_IDENT;
 			tokens[j].val = val;
 			++j;
 			
+			continue;
+		}
+		
+		if (c == '(') {
+			size_t k = 0;
+			++i;
+			while (i < len && input[i] != ')') {
+				++i;
+				++k;
+			}
+
+			char *val = malloc(sizeof(char) * (k+1));
+			strncpy(val, &input[i-k], k);
+			val[k] = 0;
+			tokens[j].val = val;
+			tokens[j].type = TOK_ASSEMBLY;
+			++i;
+			++j;
 			continue;
 		}
 
@@ -107,6 +122,7 @@ token_t
 			
 			continue;
 		}
+
 		
 		if (c == '{') {
 			tokens[j].type = TOK_LBRACE;
@@ -124,7 +140,7 @@ token_t
 			continue;
 		}
 		
-		error("Invalid token");
+		fprintf(stderr, "ParsingError: invalid char - %c\n", input[i]);
 	}
 	
 	*num_tokens = j;
@@ -222,6 +238,9 @@ translate_nst(fn, out)
 			case TOK_NUM:
 				fprintf(out,"PSH %s\n", tokens[i].val);
 				break;
+			case TOK_ASSEMBLY:
+				fprintf(out, "%s\n", tokens[i].val);
+				break;
 			case TOK_IDENT:
 				if (get_fn_name) {
 					if (!strcmp(tokens[i].val, "ENTRY"))
@@ -276,7 +295,7 @@ translate_nst(fn, out)
 					fprintf(out,"JB SCMP\n");
 					next_jmp = "JNZ";
 					conditional_jump = 1;
-				} else if (!strcmp(tokens[i].val, "INC")
+				} /*else if (!strcmp(tokens[i].val, "INC")
 				|| !strcmp(tokens[i].val, "DEC")
 				|| !strcmp(tokens[i].val, "DUP")
 				|| !strcmp(tokens[i].val, "SWP")
@@ -298,7 +317,7 @@ translate_nst(fn, out)
 				|| !strcmp(tokens[i].val, "NOT")
 				) {
 					fprintf(out, "JB S%s\n", tokens[i].val);
-				} else {
+				}*/ else {
 					fprintf(out, "JB %s\n", tokens[i].val);
 				}
 				break;
