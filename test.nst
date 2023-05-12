@@ -1,21 +1,20 @@
-"
-load standart library
-which is just bindings of sm_assembly functions to operators
-"
 load std.nst
 
-# factorial function
+#factorial
 {fac!
-	dup            # duplicate last stack item
-	--             # decrement it
-	dup            # duplicate decremented item
-	1              # push 1
-	<?             # check if 1 less than previous stack item
-	fac!           # then go to recursion
-	*              # multiplicate all items in recursion
+	dup -- dup
+	1 <? fac!
+	*
 }
 
+{facs!
+	-- dup
+	1 <? facs!
+	10 fac! println
+}
+
+# main
 {entry
-	5 fac! println # print factorial of 5
-	done           # exit with 0 exit code
+	250 facs!
+	0 hlt
 }
