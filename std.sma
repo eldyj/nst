@@ -1,120 +1,120 @@
-sdup:
-pop a
-psh a
-psh a
-gb
-sswp:
-pop a
-pop b
-psh a
-psh b
-gb
-scmp:
-pop a
-pop b
-cmp a b
-gb
-sprn:
-pop a
-prn a
-gb
-sinc:
-pop a
-inc a
-psh a
-gb
-sdec:
-pop a
-dec a
-psh a
-gb
-sadd:
-pop a
-pop b
-add a b
-psh a
-gb
-ssub:
-pop a
-pop b
-sub a b
-psh a
-gb
-smul:
-pop a
-pop b
-mul a b
-psh a
-gb
-sdiv:
-pop a
-pop b
-div a b
-psh a
-gb
-smod:
-pop a
-pop b
-mod a b
-psh a
-gb
-sshr:
-pop a
-pop b
-shr a b
-psh a
-gb
-sshl:
-pop a
-pop b
-shl a b
-psh a
-gb
-shlt:
-pop a
-hlt a
-gb
-sand:
-pop a
-pop b
-and a b
-psh a
-gb
-sxor:
-pop a
-pop b
-xor a b
-psh a
-gb
-sor:
-pop a
-pop b
-or a b
-psh a
-gb
-snot:
-pop a
-not a
-psh a
-gb
-srot:
-pop a
-pop b
-pop c
-psh a
-psh b
-psh c
-gb
-srm:
-pop a
-xor a, a
-gb
-snrm:
-pop a
-mv b a
-snrm_l:
-jb srm
-dec b
-cmp b 0
-jg snrm_l
-gb
+SDUP:
+POP A
+PSH A
+PSH A
+GB
+SSWP:
+POP A
+POP B
+PSH A
+PSH B
+GB
+SCMP:
+POP A
+POP B
+CMP A B
+GB
+SPRN:
+POP A
+PRN A
+GB
+SINC:
+POP A
+INC A
+PSH A
+GB
+SDEC:
+POP A
+DEC A
+PSH A
+GB
+SADD:
+POP A
+POP B
+ADD A B
+PSH A
+GB
+SSUB:
+POP A
+POP B
+SUB A B
+PSH A
+GB
+SMUL:
+POP A
+POP B
+MUL A B
+PSH A
+GB
+SDIV:
+POP A
+POP B
+DIV A B
+PSH A
+GB
+SMOD:
+POP A
+POP B
+MOD A B
+PSH A
+GB
+SSHR:
+POP A
+POP B
+SHR A B
+PSH A
+GB
+SSHL:
+POP A
+POP B
+SHL A B
+PSH A
+GB
+SHLT:
+POP A
+HLT A
+GB
+SAND:
+POP A
+POP B
+AND A B
+PSH A
+GB
+SXOR:
+POP A
+POP B
+XOR A B
+PSH A
+GB
+SOR:
+POP A
+POP B
+OR A B
+PSH A
+GB
+SNOT:
+POP A
+NOT A
+PSH A
+GB
+SROT:
+POP A
+POP B
+POP C
+PSH A
+PSH B
+PSH C
+GB
+SRM:
+POP A
+XOR A A
+GB
+SNRM:
+POP A
+MV B A
+SNRM_L:
+JB SRM
+DEC B
+CMP B 0
+JG SNRM_L
+GB
