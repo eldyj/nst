@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <stdint.h>
 
 typedef enum {
 	TOK_NUM,
@@ -126,7 +127,9 @@ token_t
 		
 		if (c == '{') {
 			tokens[j].type = TOK_LBRACE;
-			tokens[j].val = "{";
+			tokens[j].val = malloc(sizeof(char)*2);
+			tokens[j].val[0] = '{';
+			tokens[j].val[1] = 0;
 			j++;
 			i++;
 			continue;
@@ -134,13 +137,15 @@ token_t
 		
 		if (c == '}') {
 			tokens[j].type = TOK_RBRACE;
-			tokens[j].val = "}";
+			tokens[j].val = malloc(sizeof(char)*2);
+			tokens[j].val[0] = '}';
+			tokens[j].val[1] = 0;
 			++j;
 			++i;
 			continue;
 		}
 		
-		fprintf(stderr, "ParsingError: invalid char - %c\n", input[i]);
+		fprintf(stderr, "TokenizingError: invalid char - %c\n", input[i]);
 	}
 	
 	*num_tokens = j;
@@ -148,6 +153,20 @@ token_t
 }
 
 #undef is_ident
+
+void
+tokens_free(t, n)
+	token_t *t;
+	size_t n;
+{
+	while (n) {
+		--n;
+		if (t[n].val != NULL)
+			free(t[n].val);
+	}
+
+	free(t);
+}
 
 char
 *read_file(fn)
@@ -180,7 +199,7 @@ char_uppercase(c)
 	char c;
 {
 	if (c <= 'z' && c >= 'a')
-		return c + ('A'- 'a');
+		return c + ('A'-'a');
 	return c;
 }
 
@@ -201,7 +220,7 @@ char_downcase(c)
 	char c;
 {
 	if (c <= 'Z' && c >= 'A')
-		return c - ('A'- 'a');
+		return c - ('A'-'a');
 	return c;
 }
 
@@ -217,10 +236,68 @@ char
 	return s;
 }
 
+typedef struct {
+	char **p;
+	size_t l;
+} strvec_t;
+
+strvec_t
+strvec_new(void)
+	/* VOID */
+{
+	strvec_t r;
+	r.p = NULL;
+	r.l = 0;
+	return r;
+}
+
 void
-translate_nst(fn, out)
+strvec_add(v, s)
+	strvec_t *v;
+	char *s;
+{
+	++v->l;
+	v->p = realloc(v->p, sizeof(char*)*v->l);
+	v->p[v->l-1] = s;
+}
+
+void
+strvec_push(v, s)
+	strvec_t *v;
+	char *s;
+{
+	strvec_add(v, strdup(s));
+}
+
+uint8_t
+strvec_contains(v, s)
+	strvec_t *v;
+	char *s;
+{
+	for (size_t i = 0; i < v->l; ++i)
+		if (!strcmp(v->p[i], s))
+			return 1;
+
+	return 0;
+}
+
+void
+strvec_free(v)
+	strvec_t *v;
+{
+	while (v->l) {
+		--v->l;
+		free(v->p[v->l]);
+	}
+
+	free(v->p);
+}
+
+void
+translate_nst(fn, out, fns)
 	char *fn;
 	FILE *out;
+	strvec_t *fns;
 {
 	char *input = str_uppercase(read_file(fn));
 	int num_tokens;
@@ -243,15 +320,22 @@ translate_nst(fn, out)
 				break;
 			case TOK_IDENT:
 				if (get_fn_name) {
+					if (strvec_contains(fns, tokens[i].val)) {
+						fprintf(stderr, "ParsingError: function %s is already defined\n", tokens[i].val);
+						exit(1);
+					}
+					
 					if (!strcmp(tokens[i].val, "ENTRY"))
 						fprintf(out, "_START:\n");
 					else
 						fprintf(out, "%s:\n", tokens[i].val);
+
+					strvec_push(fns, tokens[i].val);
 				
 					get_fn_name = 0;
 				} else if (include) {
 					include = 0;
-					translate_nst(str_downcase(tokens[i].val), out);
+					translate_nst(str_downcase(tokens[i].val), out, fns);
 				} else if (include_sma) {
 					include_sma = 0;
 					char *smac = read_file(str_downcase(tokens[i].val));
@@ -295,29 +379,11 @@ translate_nst(fn, out)
 					fprintf(out,"JB SCMP\n");
 					next_jmp = "JNZ";
 					conditional_jump = 1;
-				} /*else if (!strcmp(tokens[i].val, "INC")
-				|| !strcmp(tokens[i].val, "DEC")
-				|| !strcmp(tokens[i].val, "DUP")
-				|| !strcmp(tokens[i].val, "SWP")
-				|| !strcmp(tokens[i].val, "PRN")
-				|| !strcmp(tokens[i].val, "HLT")
-				|| !strcmp(tokens[i].val, "ADD")
-				|| !strcmp(tokens[i].val, "SUB")
-				|| !strcmp(tokens[i].val, "MUL")
-				|| !strcmp(tokens[i].val, "DIV")
-				|| !strcmp(tokens[i].val, "MOD")
-				|| !strcmp(tokens[i].val, "XOR")
-				|| !strcmp(tokens[i].val, "OR")
-				|| !strcmp(tokens[i].val, "AND")
-				|| !strcmp(tokens[i].val, "SHL")
-				|| !strcmp(tokens[i].val, "SHR")
-				|| !strcmp(tokens[i].val, "RM")
-				|| !strcmp(tokens[i].val, "NRM")
-				|| !strcmp(tokens[i].val, "ROT")
-				|| !strcmp(tokens[i].val, "NOT")
-				) {
-					fprintf(out, "JB S%s\n", tokens[i].val);
-				}*/ else {
+				} else {
+					if (!strvec_contains(fns, tokens[i].val)) {
+						fprintf(stderr, "ParsingError: function %s undefined\n", tokens[i].val);
+						exit(1);
+					}
 					fprintf(out, "JB %s\n", tokens[i].val);
 				}
 				break;
@@ -329,6 +395,8 @@ translate_nst(fn, out)
 				break;
 		}
 	}
+
+	tokens_free(tokens, num_tokens);
 }
 
 int
@@ -336,8 +404,10 @@ main(argc, argv)
 	int argc;
 	char *argv[argc];
 {
+	strvec_t fns = strvec_new();
 	FILE *out = fopen(argv[2], "w");
-	translate_nst(argv[1], out);
+	translate_nst(argv[1], out, &fns);
 	fclose(out);
+	strvec_free(&fns);
 	return 0;
 }
