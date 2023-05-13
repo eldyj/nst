@@ -23,6 +23,11 @@
 	(PRN A)
 }
 
+{scan
+	(SN A)
+	(PRN A)
+}
+
 {++
 	(POP A)
 	(INC A)
